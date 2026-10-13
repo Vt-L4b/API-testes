@@ -72,4 +72,7 @@ class ProdutoResposta(Produto):
 
 class ListaProdutos(BaseModel):
     total: int
+    # Ajudam a depurar a configuração da IA: o que a API entendeu e o que ela descartou.
+    filtros_aplicados: dict[str, str] = Field(default_factory=dict)
+    parametros_ignorados: list[str] = Field(default_factory=list)
     itens: list[ProdutoResposta]

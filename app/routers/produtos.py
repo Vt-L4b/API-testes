@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 from app.products import find_store, load_products, load_stores, normalize, with_availability
 from app.schemas import ListaProdutos, Loja, ProdutoResposta
@@ -50,8 +50,13 @@ def listar_lojas():
     return load_stores()
 
 
+FILTROS = ("busca", "loja", "disponivel", "categoria", "tamanho", "ref_id", "preco_min", "preco_max")
+PAGINACAO = ("limite", "offset")
+
+
 @router.get("/produtos", response_model=ListaProdutos, tags=["produtos"])
 def listar_produtos(
+    request: Request,
     busca: str | None = Query(None, description="Palavras no nome (todas precisam aparecer)"),
     loja: str | None = Query(None, description="Loja (Id ou nome, ex.: norte, Shopping Norte)"),
     disponivel: str | None = Query(None, description="true: só disponíveis; false: só indisponíveis"),
@@ -91,7 +96,19 @@ def listar_produtos(
     if disponivel is not None:
         itens = [p for p in itens if (p.Availability == "available") == disponivel]
 
-    return ListaProdutos(total=len(itens), itens=itens[offset : offset + limite])
+    aplicados = {
+        k: v for k, v in request.query_params.items() if k in FILTROS and v.strip()
+    }
+    ignorados = [
+        k for k in request.scope.get("original_query_keys", [])
+        if k.strip().lower() not in FILTROS + PAGINACAO
+    ]
+    return ListaProdutos(
+        total=len(itens),
+        filtros_aplicados=aplicados,
+        parametros_ignorados=ignorados,
+        itens=itens[offset : offset + limite],
+    )
 
 
 @router.get("/produtos/{produto_id}", response_model=ProdutoResposta, tags=["produtos"])

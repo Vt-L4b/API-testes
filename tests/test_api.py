@@ -140,3 +140,18 @@ def test_codigo_incompleto_nao_casa(client):
     headers = {"X-API-Key": "tk_fixa1"}
     assert client.get("/produtos?loja=21", headers=headers).status_code == 404
     assert client.get("/produtos?loja=216", headers=headers).status_code == 404
+
+
+def test_nomes_de_parametro_sem_diferenciar_maiusculas(client):
+    headers = {"X-API-Key": "tk_fixa1"}
+    resp = client.get("/produtos?Busca=bota&LOJA=2168&Tamanho=37", headers=headers).json()
+    assert resp["total"] == 5
+    assert resp["filtros_aplicados"] == {"busca": "bota", "loja": "2168", "tamanho": "37"}
+    assert resp["parametros_ignorados"] == []
+
+
+def test_parametro_desconhecido_e_reportado(client):
+    headers = {"X-API-Key": "tk_fixa1"}
+    resp = client.get("/produtos?Name=bota&loja=2168&tamanho=37", headers=headers).json()
+    assert resp["total"] == 15
+    assert resp["parametros_ignorados"] == ["Name"]

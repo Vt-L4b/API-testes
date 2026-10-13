@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from urllib.parse import parse_qsl, urlencode
+
+from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 
 from app.database import Base, engine
@@ -22,6 +24,18 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="API de produtos para testes da Whizz", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def lowercase_query_keys(request: Request, call_next):
+    # Plataformas de IA às vezes enviam "Busca" ou "Loja": tratamos os nomes sem diferenciar
+    # maiúsculas. O nome original fica guardado para listar parâmetros ignorados.
+    query = request.scope["query_string"].decode("latin-1")
+    if query:
+        request.scope["original_query_keys"] = [k for k, _ in parse_qsl(query, keep_blank_values=True)]
+        pairs = [(k.strip().lower(), v) for k, v in parse_qsl(query, keep_blank_values=True)]
+        request.scope["query_string"] = urlencode(pairs).encode("latin-1")
+    return await call_next(request)
 app.include_router(admin.router)
 app.include_router(produtos.router)
 
