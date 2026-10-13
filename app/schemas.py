@@ -46,8 +46,30 @@ class Produto(BaseModel):
     # Extras (na VTEX ficam nas APIs de SKU/preço), necessários para a IA responder ao cliente.
     Price: float
     Size: str
+    # Quantidade por loja ({"centro": 2, ...}); fica só no JSON, a resposta usa "Stores".
+    Stock: dict[str, int] = Field(default_factory=dict, exclude=True)
+
+
+class Loja(BaseModel):
+    Id: str
+    Name: str
+    Address: str
+
+
+class EstoqueLoja(BaseModel):
+    StoreId: str
+    StoreName: str
+    Quantity: int
+    Availability: str
+
+
+class ProdutoResposta(Produto):
+    Availability: str = Field(
+        description="'available' ou 'unavailable' (na loja filtrada, ou em pelo menos uma loja)"
+    )
+    Stores: list[EstoqueLoja]
 
 
 class ListaProdutos(BaseModel):
     total: int
-    itens: list[Produto]
+    itens: list[ProdutoResposta]

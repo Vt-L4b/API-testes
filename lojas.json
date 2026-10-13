@@ -1,0 +1,6 @@
+[
+  {"Id": "centro", "Name": "Loja Centro", "Address": "Rua XV de Novembro, 100 - Centro"},
+  {"Id": "norte", "Name": "Loja Shopping Norte", "Address": "Av. das Nações, 2000 - Shopping Norte, piso 1"},
+  {"Id": "sul", "Name": "Loja Shopping Sul", "Address": "Av. do Sul, 500 - Shopping Sul, piso 2"},
+  {"Id": "outlet", "Name": "Loja Outlet", "Address": "Rodovia dos Outlets, km 12 - Loja 34"}
+]

@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     admin_token: str
     database_url: str = "sqlite:///./data.db"
     products_file: str = "produtos.json"
+    stores_file: str = "lojas.json"
     # Chaves fixas, separadas por vírgula. Úteis em hospedagens onde o SQLite é apagado
     # a cada reinício (ex.: Render gratuito): a chave não depende do banco.
     api_keys: str = ""

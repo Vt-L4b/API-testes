@@ -39,6 +39,8 @@ Também aceita `Authorization: Bearer tk_...`, caso a plataforma só permita ess
 | Parâmetro | Exemplo | Descrição |
 |---|---|---|
 | `busca` | `sandalia dourada` | Palavras no nome (todas precisam aparecer; ignora acentos e maiúsculas) |
+| `loja` | `norte` ou `Shopping Norte` | Disponibilidade só nessa loja (Id ou parte do nome) |
+| `disponivel` | `true` | Só disponíveis (`false`: só indisponíveis) |
 | `categoria` | `10` | `CategoryId` (tabela abaixo) |
 | `tamanho` | `37` | `Size` (bolsas: `Único`) |
 | `ref_id` | `S596L5012` | `RefId`; retorna todos os tamanhos do modelo |
@@ -48,7 +50,18 @@ Também aceita `Authorization: Bearer tk_...`, caso a plataforma só permita ess
 Resposta: `{"total": N, "itens": [ ...produtos no formato VTEX... ]}`. Só retorna produtos com
 `IsActive` e `IsVisible` verdadeiros.
 
-`GET /produtos/{Id}` retorna um único produto.
+`GET /produtos/{Id}` retorna um único produto (aceita `?loja=`). `GET /lojas` lista as lojas.
+
+Cada produto vem com `Availability` (`available`/`unavailable`) e `Stores`: a quantidade em cada
+loja, ou só na loja filtrada. Sem `loja`, `available` significa "tem em pelo menos uma loja".
+Loja inexistente retorna 404 com a lista de lojas válidas.
+
+## Lojas e estoque
+
+As lojas ficam em `lojas.json`. O estoque fica no campo `Stock` de cada produto em `produtos.json`
+(ex.: `"Stock": {"centro": 5, "norte": 0, "sul": 0, "outlet": 5}`); as chaves são os `Id` das
+lojas. Esse campo não aparece na resposta, que usa `Stores`. Produtos com 0 em todas as lojas
+aparecem como `unavailable`.
 
 ## Formato do produto
 
