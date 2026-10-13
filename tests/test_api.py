@@ -84,20 +84,20 @@ def test_empty_filters_are_ignored(client):
 
 def test_lojas(client):
     lojas = client.get("/lojas", headers={"X-API-Key": "tk_fixa1"}).json()
-    assert [l["Id"] for l in lojas] == ["centro", "norte", "sul", "outlet"]
+    assert [l["Id"] for l in lojas] == ["2168", "6664", "2146", "2156"]
 
 
 def test_disponibilidade_por_loja(client):
     headers = {"X-API-Key": "tk_fixa1"}
-    # Id 1001 tem estoque no Centro (5) e não tem no Shopping Norte.
-    p = client.get("/produtos/1001?loja=centro", headers=headers).json()
+    # Id 1001 tem estoque na Loja 2168 (5) e não tem na Loja 6664.
+    p = client.get("/produtos/1001?loja=2168", headers=headers).json()
     assert p["Availability"] == "available"
-    assert p["Stores"] == [{"StoreId": "centro", "StoreName": "Loja Centro",
+    assert p["Stores"] == [{"StoreId": "2168", "StoreName": "Loja 2168",
                             "Quantity": 5, "Availability": "available"}]
-    for loja in ["norte", "Shopping Norte", "loja norte", "NORTE"]:
+    for loja in ["6664", "Loja 6664", "loja 6664", "LOJA 6664"]:
         p = client.get(f"/produtos/1001?loja={loja}", headers=headers).json()
         assert p["Availability"] == "unavailable"
-        assert p["Stores"][0]["StoreId"] == "norte"
+        assert p["Stores"][0]["StoreId"] == "6664"
 
 
 def test_esgotado_em_todas(client):
@@ -110,9 +110,9 @@ def test_esgotado_em_todas(client):
 
 def test_filtro_disponivel(client):
     headers = {"X-API-Key": "tk_fixa1"}
-    todos = client.get("/produtos?loja=sul", headers=headers).json()["total"]
-    sim = client.get("/produtos?loja=sul&disponivel=true", headers=headers).json()["total"]
-    nao = client.get("/produtos?loja=sul&disponivel=false", headers=headers).json()["total"]
+    todos = client.get("/produtos?loja=2146", headers=headers).json()["total"]
+    sim = client.get("/produtos?loja=2146&disponivel=true", headers=headers).json()["total"]
+    nao = client.get("/produtos?loja=2146&disponivel=false", headers=headers).json()["total"]
     assert (todos, sim + nao) == (63, 63)
     assert client.get("/produtos?disponivel=false", headers=headers).json()["total"] == 5
 
@@ -120,7 +120,7 @@ def test_filtro_disponivel(client):
 def test_loja_inexistente(client):
     resp = client.get("/produtos?loja=praia", headers={"X-API-Key": "tk_fixa1"})
     assert resp.status_code == 404
-    assert "Loja Centro" in resp.json()["detail"]
+    assert "Loja 6664" in resp.json()["detail"]
     assert client.get("/produtos?loja=", headers={"X-API-Key": "tk_fixa1"}).status_code == 200
 
 
@@ -134,3 +134,9 @@ def test_revoked_key_is_rejected(client):
     key = create_key(client)
     client.delete(f"/admin/keys/{key['id']}", headers=ADMIN)
     assert client.get("/produtos", headers={"X-API-Key": key["api_key"]}).status_code == 401
+
+
+def test_codigo_incompleto_nao_casa(client):
+    headers = {"X-API-Key": "tk_fixa1"}
+    assert client.get("/produtos?loja=21", headers=headers).status_code == 404
+    assert client.get("/produtos?loja=216", headers=headers).status_code == 404

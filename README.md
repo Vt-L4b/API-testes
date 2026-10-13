@@ -39,7 +39,7 @@ Também aceita `Authorization: Bearer tk_...`, caso a plataforma só permita ess
 | Parâmetro | Exemplo | Descrição |
 |---|---|---|
 | `busca` | `sandalia dourada` | Palavras no nome (todas precisam aparecer; ignora acentos e maiúsculas) |
-| `loja` | `norte` ou `Shopping Norte` | Disponibilidade só nessa loja (Id ou parte do nome) |
+| `loja` | `2168` ou `Loja 2168` | Disponibilidade só nessa loja (código completo) |
 | `disponivel` | `true` | Só disponíveis (`false`: só indisponíveis) |
 | `categoria` | `10` | `CategoryId` (tabela abaixo) |
 | `tamanho` | `37` | `Size` (bolsas: `Único`) |
@@ -59,7 +59,7 @@ Loja inexistente retorna 404 com a lista de lojas válidas.
 ## Lojas e estoque
 
 As lojas ficam em `lojas.json`. O estoque fica no campo `Stock` de cada produto em `produtos.json`
-(ex.: `"Stock": {"centro": 5, "norte": 0, "sul": 0, "outlet": 5}`); as chaves são os `Id` das
+(ex.: `"Stock": {"2168": 5, "6664": 0, "2146": 0, "2156": 5}`); as chaves são os `Id` das
 lojas. Esse campo não aparece na resposta, que usa `Stores`. Produtos com 0 em todas as lojas
 aparecem como `unavailable`.
 

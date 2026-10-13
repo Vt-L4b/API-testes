@@ -1,6 +1,6 @@
 [
-  {"Id": "centro", "Name": "Loja Iesa", "Address": "Rua XV de Novembro, 100 - Centro"},
-  {"Id": "norte", "Name": "Loja Helen", "Address": "Av. das Nações, 2000 - Shopping Norte, piso 1"},
-  {"Id": "sul", "Name": "Loja Jean", "Address": "Av. do Sul, 500 - Shopping Sul, piso 2"},
-  {"Id": "outlet", "Name": "Sofia", "Address": "Rodovia dos Outlets, km 12 - Loja 34"}
+  {"Id": "2168", "Name": "Loja 2168", "Address": "Rua XV de Novembro, 100 - Centro"},
+  {"Id": "6664", "Name": "Loja 6664", "Address": "Av. das Nações, 2000 - Shopping Norte, piso 1"},
+  {"Id": "2146", "Name": "Loja 2146", "Address": "Av. do Sul, 500 - Shopping Sul, piso 2"},
+  {"Id": "2156", "Name": "Loja 2156", "Address": "Rodovia dos Outlets, km 12 - Loja 34"}
 ]

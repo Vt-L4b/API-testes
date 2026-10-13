@@ -28,12 +28,14 @@ def normalize(text: str) -> str:
 
 
 def find_store(keyword: str) -> Loja | None:
-    # Aceita o Id ("norte") ou parte do nome ("Shopping Norte", "loja norte").
+    # Aceita o Id ("2168") ou o nome ("Loja 2168", "loja 2168"). Compara palavras inteiras,
+    # para que um código incompleto ("21") não caia na loja errada.
     termos = [t for t in normalize(keyword).split() if t != "loja"]
     if not termos:
         return None
     for store in load_stores():
-        if " ".join(termos) == store.Id or all(t in normalize(store.Name) for t in termos):
+        nome = normalize(store.Name).split()
+        if " ".join(termos) == normalize(store.Id) or all(t in nome for t in termos):
             return store
     return None
 
