@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: api-produtos-whizz
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.13"
+      # Valores secretos: o Render pede para preenchê-los no painel durante a criação.
+      - key: ADMIN_TOKEN
+        sync: false
+      - key: API_KEYS
+        sync: false
