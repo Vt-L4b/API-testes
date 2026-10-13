@@ -2,8 +2,13 @@ import hashlib
 import logging
 import secrets
 
-from fastapi import Depends, HTTPException, status
-from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import (
+    APIKeyHeader,
+    APIKeyQuery,
+    HTTPAuthorizationCredentials,
+    HTTPBearer,
+)
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -20,6 +25,9 @@ logger = logging.getLogger("uvicorn.error")
 admin_header = APIKeyHeader(name="X-Admin-Token", scheme_name="AdminToken", auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", scheme_name="ChaveAPI", auto_error=False)
 bearer = HTTPBearer(scheme_name="ChaveBearer", auto_error=False)
+# Alternativa para plataformas que não repassam cabeçalhos: ?api_key=tk_...
+# O valor é mascarado no log de acesso (ver RedactApiKey em app/main.py).
+api_key_query = APIKeyQuery(name="api_key", scheme_name="ChaveURL", auto_error=False)
 
 
 def generate_key() -> str:
@@ -41,15 +49,20 @@ def require_admin(x_admin_token: str | None = Depends(admin_header)) -> None:
 
 
 def require_api_key(
+    request: Request,
     x_api_key: str | None = Depends(api_key_header),
     authorization: HTTPAuthorizationCredentials | None = Depends(bearer),
+    query_key: str | None = Depends(api_key_query),
     db: Session = Depends(get_db),
 ) -> None:
-    # Aceita "X-API-Key: tk_..." ou "Authorization: Bearer tk_...",
+    # Aceita "X-API-Key: tk_...", "Authorization: Bearer tk_..." ou "?api_key=tk_...",
     # para se adaptar ao formato que a plataforma da IA conseguir enviar.
-    raw_key = x_api_key or (authorization.credentials if authorization else None)
+    raw_key = x_api_key or (authorization.credentials if authorization else None) or query_key
+    raw_key = raw_key.strip() if raw_key else None
     if not raw_key:
-        logger.warning("401: requisição sem chave (nenhum cabeçalho X-API-Key ou Authorization)")
+        # Só os nomes dos cabeçalhos (nunca os valores), para descobrir o que a plataforma enviou.
+        logger.warning("401: requisição sem chave. Cabeçalhos recebidos: %s",
+                       ", ".join(sorted(request.headers.keys())))
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Chave de acesso ausente")
 
     if any(secrets.compare_digest(raw_key, k) for k in get_settings().static_api_keys):

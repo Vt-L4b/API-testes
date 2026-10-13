@@ -1,5 +1,6 @@
+import logging
+import re
 from contextlib import asynccontextmanager
-
 from urllib.parse import parse_qsl, urlencode
 
 from fastapi import FastAPI, Request
@@ -8,6 +9,22 @@ from fastapi.responses import RedirectResponse
 from app.database import Base, engine
 from app.products import load_products, load_stores
 from app.routers import admin, produtos
+
+
+class RedactApiKey(logging.Filter):
+    """Mascara ?api_key=... no log de acesso do uvicorn (o log do Render é visível no painel)."""
+
+    pattern = re.compile(r"(api_key=)[^&\s]+", re.IGNORECASE)
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if isinstance(record.args, tuple):
+            record.args = tuple(
+                self.pattern.sub(r"\1***", a) if isinstance(a, str) else a for a in record.args
+            )
+        return True
+
+
+logging.getLogger("uvicorn.access").addFilter(RedactApiKey())
 
 
 @asynccontextmanager
@@ -36,6 +53,8 @@ async def lowercase_query_keys(request: Request, call_next):
         pairs = [(k.strip().lower(), v) for k, v in parse_qsl(query, keep_blank_values=True)]
         request.scope["query_string"] = urlencode(pairs).encode("latin-1")
     return await call_next(request)
+
+
 app.include_router(admin.router)
 app.include_router(produtos.router)
 

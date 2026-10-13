@@ -51,7 +51,7 @@ def listar_lojas():
 
 
 FILTROS = ("busca", "loja", "disponivel", "categoria", "tamanho", "ref_id", "preco_min", "preco_max")
-PAGINACAO = ("limite", "offset")
+PAGINACAO = ("limite", "offset", "api_key")
 
 
 @router.get("/produtos", response_model=ListaProdutos, tags=["produtos"])

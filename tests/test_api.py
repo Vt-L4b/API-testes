@@ -155,3 +155,11 @@ def test_parametro_desconhecido_e_reportado(client):
     resp = client.get("/produtos?Name=bota&loja=2168&tamanho=37", headers=headers).json()
     assert resp["total"] == 15
     assert resp["parametros_ignorados"] == ["Name"]
+
+
+def test_chave_pela_url(client):
+    resp = client.get("/produtos?busca=bota&api_key=tk_fixa1")
+    assert resp.status_code == 200
+    assert resp.json()["parametros_ignorados"] == []
+    assert "api_key" not in resp.json()["filtros_aplicados"]
+    assert client.get("/produtos?api_key=tk_errada").status_code == 401

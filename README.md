@@ -32,7 +32,9 @@ GET /produtos?busca=cafe&disponivel=true
 X-API-Key: tk_...
 ```
 
-Também aceita `Authorization: Bearer tk_...`, caso a plataforma só permita esse formato.
+Também aceita `Authorization: Bearer tk_...` ou, se a plataforma não repassar cabeçalhos,
+o parâmetro de URL `?api_key=tk_...` (mascarado como `api_key=***` no log de acesso).
+Quando uma requisição chega sem chave, o log registra os nomes dos cabeçalhos recebidos.
 
 ### Filtros de `GET /produtos` (todos opcionais)
 
