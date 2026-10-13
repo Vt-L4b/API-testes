@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import secrets
 
 from fastapi import Depends, HTTPException, status
@@ -11,6 +12,9 @@ from app.database import get_db
 from app.models import ApiKey, utcnow
 
 KEY_PREFIX = "tk_"
+
+# Logger do uvicorn, para as mensagens aparecerem junto dos acessos no log do Render.
+logger = logging.getLogger("uvicorn.error")
 
 # Declarados como esquemas de segurança para aparecerem no botão "Authorize" do /docs.
 admin_header = APIKeyHeader(name="X-Admin-Token", scheme_name="AdminToken", auto_error=False)
@@ -45,6 +49,7 @@ def require_api_key(
     # para se adaptar ao formato que a plataforma da IA conseguir enviar.
     raw_key = x_api_key or (authorization.credentials if authorization else None)
     if not raw_key:
+        logger.warning("401: requisição sem chave (nenhum cabeçalho X-API-Key ou Authorization)")
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Chave de acesso ausente")
 
     if any(secrets.compare_digest(raw_key, k) for k in get_settings().static_api_keys):
@@ -52,6 +57,9 @@ def require_api_key(
 
     key = db.scalar(select(ApiKey).where(ApiKey.key_hash == hash_key(raw_key)))
     if key is None or key.revoked:
+        # Só o início da chave, para identificar qual foi enviada sem expô-la.
+        logger.warning("401: chave não reconhecida (começa com %r, %d caracteres)",
+                       raw_key[:7], len(raw_key))
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Chave inválida ou revogada")
 
     key.last_used_at = utcnow()
